@@ -1,3 +1,4 @@
+from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import serializers, viewsets
 from rest_framework import filters as rf_filters
 from rest_framework import routers
@@ -44,6 +45,8 @@ class ItemSerializer(serializers.HyperlinkedModelSerializer):
 
 
 class LoanSerializer(serializers.ModelSerializer):
+    person_name = serializers.ReadOnlyField(source="person.nickname")
+
     class Meta:
         model = models.Loan
         fields = "__all__"
@@ -53,7 +56,12 @@ class BarcodeViewSet(viewsets.ModelViewSet):
     queryset = models.Barcode.objects.all()
     serializer_class = BarcodeSerializer
     search_fields = ("code", "item__name", "description", "item__description")
-    filter_backends = (filters.QuickSearchFilter, rf_filters.OrderingFilter)
+    filter_backends = (
+        filters.QuickSearchFilter,
+        rf_filters.OrderingFilter,
+        DjangoFilterBackend,
+    )
+    filterset_fields = {"parent": ["exact", "isnull"], "owner": ["exact", "isnull"]}
 
 
 class PersonViewSet(viewsets.ModelViewSet):
@@ -66,6 +74,8 @@ class ItemViewSet(viewsets.ModelViewSet):
     queryset = models.Item.objects.all()
     serializer_class = ItemSerializer
     search_fields = ("name",)
+    filter_backends = (rf_filters.SearchFilter, DjangoFilterBackend)
+    filterset_fields = {"barcodes": ["isnull"]}
 
 
 class TagViewSet(viewsets.ModelViewSet):
@@ -74,14 +84,17 @@ class TagViewSet(viewsets.ModelViewSet):
 
 
 class LoanViewSet(viewsets.ModelViewSet):
-    queryset = models.Loan.objects.all()
+    queryset = models.Loan.objects.order_by("-id")
     serializer_class = LoanSerializer
-    filter_backends = (filters.field_search_filter("person__id"),)
+    filter_backends = (filters.field_search_filter("person__id"), DjangoFilterBackend)
+    filterset_fields = {"status": ["exact"]}
 
 
 class UserLoanViewSet(viewsets.ModelViewSet):
-    queryset = models.Loan.objects.all()
+    queryset = models.Loan.objects.order_by("-id")
     serializer_class = LoanSerializer
+    filter_backends = (DjangoFilterBackend,)
+    filterset_fields = {"status": ["exact"]}
 
     def get_queryset(self):
         user = self.request.user
