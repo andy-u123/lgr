@@ -53,7 +53,8 @@ def loan(request):
         return JsonResponse({"message": "Invalid request."}, status=400)
 
     payload = loads(request.body.decode())
-    return_date = payload["return_date"]
+    return_date = payload.get("return_date")
+    description = payload.get("description", "")
     preview = payload.get("preview", False)
     items = payload["items"]
     items = [i["code"] for i in items]
@@ -107,7 +108,9 @@ def loan(request):
 
     # valid loan
     person = models.Person.objects.get(nickname=request.user.username)
-    _loan = models.Loan.objects.create(person=person, return_date=return_date)
+    _loan = models.Loan.objects.create(
+        person=person, return_date=return_date, description=description
+    )
     _loan.barcodes.set(items.all())
     response = {"message": "Loan for %s items created." % _loan.barcodes.count()}
     return JsonResponse(response)
