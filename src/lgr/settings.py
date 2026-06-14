@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     "rest_framework",
     "django_filters",
     "django_nose",
+    "django_cleanup",
 ]
 
 MIDDLEWARE = [
@@ -129,6 +130,19 @@ USE_TZ = True
 BASE_DIR = os.getenv("PWD", "")
 STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR + "/static/"
+
+
+# Media files (e.g. uploaded images)
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+# relative path for item images; if many files will get uploaded, this could be changed even to 'images/items/%Y/%m/%d/'
+MEDIA_ITEM_PATH = 'images/items/%Y/'
+# scale image down to given max heigth; set to 0 if you don't want to use it
+MEDIA_ITEM_MAX_HEIGHT = 300
+# scale image down to given max width; set to 0 if you don't want to use it
+MEDIA_ITEM_MAX_WIDTH = 0
+MEDIA_ITEM_JPEG_QUALITY = 95
 
 
 # Tests
