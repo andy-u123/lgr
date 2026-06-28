@@ -36,7 +36,12 @@ def auth(request):
             return JsonResponse(response, status=400)
 
     if request.user and request.user.is_authenticated:
-        response = {"logged_in": True, "username": request.user.username}
+        response = {
+            "logged_in": True,
+            "username": request.user.username,
+            "is_staff": request.user.is_staff,
+            "is_superuser": request.user.is_superuser,
+        }
         return JsonResponse(response)
 
     response = {"logged_in": False, "username": ""}
@@ -106,7 +111,12 @@ def loan(request):
         return JsonResponse(response, status=400)
 
     # valid loan
+    # Privileged users (staff/superuser) may loan on behalf of another person by passing
+    # "person" (a Person id) in the payload; everyone else loans for themselves.
     person = models.Person.objects.get(nickname=request.user.username)
+    requested_person = payload.get("person")
+    if requested_person and (request.user.is_staff or request.user.is_superuser):
+        person = models.Person.objects.get(pk=requested_person)
     _loan = models.Loan.objects.create(person=person, return_date=return_date)
     _loan.barcodes.set(items.all())
     response = {"message": "Loan for %s items created." % _loan.barcodes.count()}
