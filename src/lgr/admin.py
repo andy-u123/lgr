@@ -310,7 +310,7 @@ class BarcodeAdmin(admin.ModelAdmin):
 
 class BarcodeInline(admin.TabularInline):
     model = models.Barcode
-    autocomplete_fields = ("owner",)
+    autocomplete_fields = ("owner", "parent")
 
     def get_formset(self, request, obj, **kwargs):
         formset = super().get_formset(request, obj, **kwargs)
