@@ -244,10 +244,10 @@
                                         {{ props.row.item_name }}
                                     </a>
                                 </b-table-column>
-                                <b-table-column field="description" label="Description" sortable>
+                                <b-table-column field="description" label="Description" :class="[ props.row.description ? '' : 'is-hidden-mobile' ]" sortable>
                                     {{ props.row.description }}
                                 </b-table-column>
-                                <b-table-column field="item_description" label="Item Description" sortable>
+                                <b-table-column field="item_description" label="Item Description" :class="[ props.row.item_description ? '' : 'is-hidden-mobile' ]" sortable>
                                     {{ props.row.item_description }}
                                 </b-table-column>
                             </template>
@@ -357,13 +357,19 @@
                      // remove selected from offset to keep pagination working
                      checked = this.tableCheckedRows
                      offset = this.tableOffset - checked.length
+                     var thisRequestStart = new Date().getTime()
+                     this.latestRequestStart = thisRequestStart
                      axios.get(`${this.apiUrl}?limit=${this.tableLimit}&offset=${offset}&search=${this.tableSearch}&ordering=${this.tableOrdering}`)
                           .then(({data}) => {
-                              // keep selected results and do not return more than 25 items
-                              this.tableData = checked.concat(data.results)
-                              this.tableData = this.tableData.slice(0, this.tableLimit)
-                              this.tableCount = data.count
-                              this.tableLoading = false
+                              // only render this response if it is still the most recent
+                              // request; drop it if a newer search has been started meanwhile
+                              if (thisRequestStart == this.latestRequestStart) {
+                                  // keep selected results and do not return more than 25 items
+                                  this.tableData = checked.concat(data.results)
+                                  this.tableData = this.tableData.slice(0, this.tableLimit)
+                                  this.tableCount = data.count
+                                  this.tableLoading = false
+                              }
                           })
                  },
 
